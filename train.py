@@ -31,7 +31,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
 # Training
 parser.add_argument('-t', '--train', dest='evaluate', action='store_true',
                     help='train the model. When evaluate is true, training is ignored and trained models are loaded.')
-parser.add_argument('--epochs', default=300, type=int, metavar='N',
+parser.add_argument('--epochs', default=3, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--train-batch', default=128, type=int, metavar='N',
                     help='train batchsize')
@@ -82,6 +82,7 @@ reward_list = args.rewards
 # Use CUDA
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
 use_cuda = torch.cuda.is_available()
+print("Use cuda", use_cuda)
 
 # Random seed
 if args.manualSeed is None:
@@ -368,15 +369,19 @@ def test(testloader, model, criterion, epoch, use_cuda, evaluation = False):
         bar.next()
     bar.finish()
     if epoch >= args.pretrain:
-    	# sort the abstention results according to their reservations, from high to low
-    	abstention_results.sort(key = lambda x: x[0], reverse=True)
-    	# get the "correct or not" list for the sorted results
-    	sorted_correct = list(map(lambda x: int(x[1]), abstention_results))
-    	size = len(testloader)
-    	print('accracy of coverage ',end='')
-    	for coverage in expected_coverage:
-    	    print('{:.0f}: {:.3f}, '.format(coverage, sum(sorted_correct[int(size/100*coverage):])),end='')
-    	print('')
+        # sort the abstention results according to their reservations, from high to low
+        abstention_results.sort(key = lambda x: x[0], reverse=True)
+        # get the "correct or not" list for the sorted results
+        sorted_correct = list(map(lambda x: int(x[1]), abstention_results))
+        size = len(testloader)
+        print('accuracy of coverage ', end='')
+        for coverage in expected_coverage:
+            #print("coverage", coverage)
+            #print("size", size)
+            #print("sorted_correct:", sorted_correct)
+            #print("abstention_results" ,abstention_results)
+            print('{:.0f}: {:.3f}, '.format(coverage, sum(sorted_correct[int(size/100*coverage):])), end='')
+        print('')
     return (losses.avg, top1.avg)
 
 def adjust_learning_rate(optimizer, epoch):
@@ -586,7 +591,8 @@ if __name__ == '__main__':
                 args.pretrain = 50
             elif args.dataset == 'catsdogs':
                 args.pretrain = 50
-        
+
+        #args.evaluate = True
         main()
         
     
